@@ -46,7 +46,7 @@ def check_port(host, port, timeout=2):
         return False
 
 def main():
-    print("=== SYSTEM CHECK REPORT ===\n")
+    print("==== SYSTEM CHECK REPORT ====\n")
 
     # Uptime
     uptime_seconds = get_uptime()
