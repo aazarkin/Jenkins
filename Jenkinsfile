@@ -1,42 +1,71 @@
 pipeline {
     agent any
 
+    environment {
+        APP_NAME = "sandbox-hitcounter"
+        IMAGE_NAME = "sandbox-hitcounter"
+        APP_DIR = "/var/www/sandbox-dashboard/sandbox-app"
+        DATA_VOLUME = "/var/www/sandbox-dashboard/sandbox-app/data:/data"
+        HOST_PORT = "5001"
+        CONTAINER_PORT = "5000"
+    }
+
     stages {
         stage('Checkout') {
             steps {
-                echo "Checking out source code..."
-                checkout scm
+                git 'https://your-git-repo-url.git'  // replace with your repo
             }
         }
 
-        stage('Build') {
+        stage('Build Docker Image') {
             steps {
-                echo "Building the project..."
-                sh 'echo "Build step goes here"'
+                script {
+                    sh """
+                    docker build -t ${IMAGE_NAME} ${APP_DIR}
+                    """
+                }
             }
         }
 
-        stage('Test') {
+        stage('Stop Previous Container') {
             steps {
-                echo "Running tests..."
-                sh 'echo "Run tests here"'
+                script {
+                    sh """
+                    docker stop ${APP_NAME} || true
+                    docker rm ${APP_NAME} || true
+                    """
+                }
             }
         }
 
-        stage('Deploy') {
+        stage('Run Container') {
             steps {
-                echo "Deploying application..."
-                sh 'echo "Deploy step goes here"'
+                script {
+                    sh """
+                    docker run -d -p ${HOST_PORT}:${CONTAINER_PORT} -v ${DATA_VOLUME} --name ${APP_NAME} ${IMAGE_NAME}
+                    """
+                }
+            }
+        }
+
+        stage('Test Container') {
+            steps {
+                script {
+                    sh """
+                    sleep 3  # wait for Flask to start
+                    curl -f http://localhost:${HOST_PORT}/
+                    """
+                }
             }
         }
     }
 
     post {
         success {
-            echo "Pipeline completed successfully!"
+            echo "Jenkins pipeline completed successfully. App is running on port ${HOST_PORT}"
         }
         failure {
-            echo "Pipeline failed!"
+            echo "Pipeline failed. Check logs for details."
         }
     }
 }
