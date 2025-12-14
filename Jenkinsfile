@@ -13,7 +13,7 @@ pipeline {
     stages {
         stage('Checkout') {
             steps {
-                git 'https://your-git-repo-url.git'  // replace with your repo
+                git 'https://github.com/aazarkin/Jenkins.git'  // replace with your repo
             }
         }
 
